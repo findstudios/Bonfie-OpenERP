@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Supabase Connection</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+        .log { margin: 5px 0; padding: 5px; background: #0a0a0a; }
+        .error { color: #ff0000; }
+        .success { color: #00ff00; }
+        .info { color: #ffff00; }
+        button { background: #333; color: #fff; padding: 10px; margin: 5px; border: 1px solid #555; cursor: pointer; }
+        button:hover { background: #444; }
+    </style>
+</head>
+<body>
+    <h1>Supabase Connection Debug</h1>
+    <div>
+        <button onclick="testConnection()">Test Supabase Connection</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    <div id="logs"></div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+        const SUPABASE_URL = 'https://jmupkvdtrkvwhpqbzhhz.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptdXBrdmR0cmt2d2hwcWJ6aGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzNDE0MzcsImV4cCI6MjA3MTkxNzQzN30.A_AvKIgqGjedTs0iXeuaopsjbf0xbCIJUSu_MJs4y0Q'
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        window.supabase = supabase
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs')
+            const logEntry = document.createElement('div')
+            logEntry.className = `log ${type}`
+            const timestamp = new Date().toISOString()
+            logEntry.textContent = `[${timestamp}] ${message}`
+            logs.insertBefore(logEntry, logs.firstChild)
+            console.log(`[${type}]`, message)
+        }
+
+        window.testConnection = async function() {
+            log('開始測試 Supabase 連接...', 'info')
+            
+            try {
+                // 測試 1: 獲取 Session
+                log('測試 1: 獲取當前 Session', 'info')
+                const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+                if (sessionError) {
+                    log(`Session 錯誤: ${sessionError.message}`, 'error')
+                } else {
+                    log(`Session 狀態: ${sessionData.session ? '已登入' : '未登入'}`, 'success')
+                }
+
+                // 測試 2: 檢查健康狀態
+                log('測試 2: 檢查 Auth 健康狀態', 'info')
+                const healthResponse = await fetch(`${SUPABASE_URL}/auth/v1/health`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY
+                    }
+                })
+                log(`Auth 健康狀態: ${healthResponse.status} ${healthResponse.statusText}`, 
+                    healthResponse.ok ? 'success' : 'error')
+
+                // 測試 3: 查詢 roles 表
+                log('測試 3: 查詢 roles 表', 'info')
+                const { data: roles, error: rolesError } = await supabase
+                    .from('roles')
+                    .select('*')
+                    .limit(1)
+                
+                if (rolesError) {
+                    log(`Roles 查詢錯誤: ${rolesError.message}`, 'error')
+                } else {
+                    log(`Roles 查詢成功: 找到 ${roles.length} 筆記錄`, 'success')
+                }
+
+                // 測試 4: 監聽 Auth 狀態變化
+                log('測試 4: 設置 Auth 狀態監聽器', 'info')
+                supabase.auth.onAuthStateChange((event, session) => {
+                    log(`Auth 事件: ${event}, Session: ${session ? '存在' : '無'}`, 'info')
+                })
+
+                log('所有測試完成！', 'success')
+                
+            } catch (error) {
+                log(`未預期的錯誤: ${error.message}`, 'error')
+                console.error(error)
+            }
+        }
+
+        window.clearLogs = function() {
+            document.getElementById('logs').innerHTML = ''
+            log('日誌已清除', 'info')
+        }
+
+        // 自動執行測試
+        log('Debug 頁面已載入', 'success')
+        log('Supabase URL: ' + SUPABASE_URL, 'info')
+        testConnection()
+    </script>
+</body>
+</html>

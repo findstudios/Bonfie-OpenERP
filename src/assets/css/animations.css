@@ -1,0 +1,506 @@
+/**
+ * 微交互動畫CSS類別
+ * 提供基礎的CSS動畫和過渡效果
+ */
+
+/* 基礎過渡效果 */
+.transition-micro {
+  transition: all 0.15s ease-out;
+}
+
+.transition-smooth {
+  transition: all 0.2s ease-out;
+}
+
+.transition-slow {
+  transition: all 0.3s ease-out;
+}
+
+/* 減少動畫偏好支援 */
+@media (prefers-reduced-motion: reduce) {
+  .transition-micro,
+  .transition-smooth,
+  .transition-slow {
+    transition: none;
+  }
+  
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce {
+    animation: none;
+  }
+  
+  .motion-safe\:animate-spin,
+  .motion-safe\:animate-pulse,
+  .motion-safe\:animate-bounce {
+    animation: none;
+  }
+}
+
+/* 按鈕微交互 */
+.btn-micro-hover {
+  @apply transition-micro;
+  transform: scale(1);
+}
+
+.btn-micro-hover:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-micro-hover:active {
+  transform: scale(0.98);
+  transition-duration: 0.1s;
+}
+
+.btn-micro-hover:focus-visible {
+  outline: 2px solid theme('colors.blue.500');
+  outline-offset: 2px;
+}
+
+/* 卡片微交互 */
+.card-micro-hover {
+  @apply transition-smooth;
+  transform: translateY(0);
+}
+
+.card-micro-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-micro-hover:active {
+  transform: translateY(0) scale(0.99);
+  transition-duration: 0.1s;
+}
+
+/* 表單輸入微交互 */
+.input-micro-focus {
+  @apply transition-smooth;
+  border-color: theme('colors.gray.300');
+  box-shadow: 0 0 0 0px rgba(59, 130, 246, 0);
+}
+
+.input-micro-focus:focus {
+  border-color: theme('colors.blue.500');
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.input-micro-focus.error {
+  border-color: theme('colors.red.500');
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input-micro-focus.success {
+  border-color: theme('colors.green.500');
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* 錯誤搖擺動畫 */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* 成功彈跳動畫 */
+@keyframes success-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-success-bounce {
+  animation: success-bounce 0.3s ease-out;
+}
+
+/* 載入動畫 */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 1.5s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 2s linear infinite;
+}
+
+/* 淡入動畫 */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* 滑入動畫 */
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.3s ease-out;
+}
+
+@keyframes slide-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-down {
+  animation: slide-in-down 0.3s ease-out;
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* 縮放動畫 */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* 模態框動畫 */
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-enter {
+  animation: modal-enter 0.25s ease-out;
+}
+
+/* 通知動畫 */
+@keyframes notification-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-notification-slide-in {
+  animation: notification-slide-in 0.3s ease-out;
+}
+
+@keyframes notification-slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.animate-notification-slide-out {
+  animation: notification-slide-out 0.25s ease-in;
+}
+
+/* 骨架屏動畫 */
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    theme('colors.gray.200') 25%,
+    theme('colors.gray.100') 50%,
+    theme('colors.gray.200') 75%
+  );
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.dark .skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    theme('colors.gray.700') 25%,
+    theme('colors.gray.600') 50%,
+    theme('colors.gray.700') 75%
+  );
+  background-size: 200px 100%;
+}
+
+/* 進度條動畫 */
+@keyframes progress-indeterminate {
+  0% {
+    left: -35%;
+    right: 100%;
+  }
+  60% {
+    left: 100%;
+    right: -90%;
+  }
+  100% {
+    left: 100%;
+    right: -90%;
+  }
+}
+
+.progress-indeterminate::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -35%;
+  right: 100%;
+  background: theme('colors.blue.500');
+  animation: progress-indeterminate 2s infinite;
+}
+
+/* 懸停效果工具類 */
+.hover-lift {
+  @apply transition-smooth;
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+}
+
+.hover-glow {
+  @apply transition-smooth;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.hover-scale {
+  @apply transition-micro;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* 焦點效果 */
+.focus-ring {
+  @apply transition-micro;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid theme('colors.blue.500');
+  outline-offset: 2px;
+}
+
+.focus-ring-inset:focus-visible {
+  outline: 2px solid theme('colors.blue.500');
+  outline-offset: -2px;
+}
+
+/* 點擊反饋 */
+.active-scale:active {
+  transform: scale(0.95);
+  transition-duration: 0.1s;
+}
+
+.active-press:active {
+  transform: translateY(1px);
+  transition-duration: 0.1s;
+}
+
+/* 載入狀態 */
+.loading-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(1px);
+  z-index: 10;
+}
+
+.dark .loading-overlay::after {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* 響應式動畫調整 */
+@media (max-width: 768px) {
+  .btn-micro-hover:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .card-micro-hover:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* 在移動設備上禁用懸停效果 */
+  .hover-lift:hover,
+  .hover-glow:hover,
+  .hover-scale:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* 高對比度模式支援 */
+@media (prefers-contrast: high) {
+  .btn-micro-hover:focus-visible,
+  .focus-ring:focus-visible {
+    outline: 3px solid;
+    outline-offset: 2px;
+  }
+  
+  .input-micro-focus:focus {
+    border-width: 2px;
+    box-shadow: none;
+  }
+}
+
+/* 動畫性能優化 */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-auto {
+  will-change: auto;
+}
+
+/* GPU加速 */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* 動畫組合類 */
+.micro-interaction {
+  @apply transition-micro hover-lift active-scale focus-ring;
+}
+
+.smooth-interaction {
+  @apply transition-smooth hover-lift active-press focus-ring;
+}
+
+.card-interaction {
+  @apply card-micro-hover active-scale focus-ring;
+}
+
+.button-interaction {
+  @apply btn-micro-hover active-scale focus-ring;
+}
+
+.input-interaction {
+  @apply input-micro-focus transition-smooth;
+}
+
+/* 動畫延遲工具類 */
+.delay-75 { animation-delay: 75ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-1000 { animation-delay: 1000ms; }
+
+/* 動畫持續時間工具類 */
+.duration-75 { animation-duration: 75ms; }
+.duration-100 { animation-duration: 100ms; }
+.duration-150 { animation-duration: 150ms; }
+.duration-200 { animation-duration: 200ms; }
+.duration-300 { animation-duration: 300ms; }
+.duration-500 { animation-duration: 500ms; }
+.duration-700 { animation-duration: 700ms; }
+.duration-1000 { animation-duration: 1000ms; }
+
+/* 動畫緩動工具類 */
+.ease-micro { animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+.ease-smooth { animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+.ease-bounce { animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+.ease-back { animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }

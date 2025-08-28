@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>訂單 | {{studioName}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* --- 基礎與變數設定 --- */
+        :root {
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Montserrat', 'Microsoft JhengHei', sans-serif;
+            --color-primary: #5D5C61; /* 主文字色 - 暖炭灰 */
+            --color-secondary: #B4A6A5; /* 次要文字色 - 淺灰褐 */
+            --color-accent: #D8A7B1; /* 點綴色 - 乾燥玫瑰粉 */
+            --color-accent-dark: #C38390; /* 強調色 - 深粉 */
+            --color-background: #FFF8F6; /* 背景色 - 淺膚粉 */
+            --color-line: #EAE2E1;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--color-background);
+            color: var(--color-primary);
+            margin: 0;
+            padding: 40px;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .invoice-container {
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* --- 水彩暈染點綴效果 --- */
+        .watercolor-bg {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 250px;
+            background-image: url("data:image/svg+xml,%3Csvg width='300' height='250' viewBox='0 0 300 250' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cellipse cx='150' cy='125' rx='150' ry='125' fill='%23D8A7B1' fill-opacity='0.2'/%3E%3C/svg%3E%0A");
+            background-repeat: no-repeat;
+            z-index: 0;
+            filter: blur(20px);
+        }
+        
+        /* 讓所有內容浮在背景之上 */
+        .invoice-header, main, .invoice-footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- 頁首 --- */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 70px;
+        }
+
+        .studio-info h1 {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            margin: 0 0 5px 0;
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+
+        .studio-info p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--color-secondary);
+        }
+
+        .invoice-meta {
+            text-align: right;
+            padding-top: 10px;
+        }
+
+        .invoice-meta h2 {
+            font-family: var(--font-serif);
+            font-size: 22px;
+            margin: 0;
+            color: var(--color-accent-dark);
+        }
+
+        .invoice-meta p {
+            margin: 5px 0 0 0;
+            font-size: 13px;
+        }
+
+        /* --- 客戶資訊 --- */
+        .client-info {
+            margin-bottom: 60px;
+        }
+        .client-info h3 {
+            margin: 0 0 10px 0;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--color-line);
+            padding-bottom: 8px;
+        }
+        .client-info p {
+            margin: 0 0 5px 0;
+            font-size: 15px;
+        }
+
+        /* --- 訂單項目 --- */
+        .items-section .items-header {
+            display: flex;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--color-line);
+            font-weight: 500;
+            color: var(--color-secondary);
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .items-section .item {
+            display: flex;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--color-line);
+            align-items: center;
+        }
+
+        .item-col-desc { flex: 4; padding-right: 15px; }
+        .item-col-qty { flex: 1; text-align: center; }
+        .item-col-price { flex: 1; text-align: right; }
+        .item-col-total { flex: 1; text-align: right; }
+
+        .item-col-desc h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+        
+        .item-col-desc p {
+            margin: 5px 0 0 0;
+            font-size: 13px;
+            color: var(--color-secondary);
+        }
+
+        /* --- 金額總計 --- */
+        .summary-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        .summary-box {
+            width: 45%;
+            max-width: 300px;
+        }
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+        .summary-line span:first-child {
+            color: var(--color-secondary);
+        }
+        /* 折扣的樣式 */
+        .summary-line.discount span:last-child {
+            color: var(--color-accent-dark);
+        }
+        /* 總計的樣式 */
+        .summary-line.total {
+            border-top: 2px solid var(--color-accent);
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 22px;
+            font-weight: 500;
+        }
+        .summary-line.total span:first-child {
+            color: var(--color-primary);
+        }
+        .summary-line.total span:last-child {
+            color: var(--color-accent-dark);
+        }
+
+        /* --- 付款資訊 --- */
+        .payment-section {
+            margin-top: 40px;
+            border-top: 1px solid var(--color-line);
+            padding-top: 30px;
+        }
+        .payment-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .payment-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .payment-info span:first-child {
+            color: var(--color-secondary);
+        }
+        .payment-info.highlight span {
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+
+        /* --- 頁尾 --- */
+        .invoice-footer {
+            margin-top: 70px;
+            text-align: center;
+            color: var(--color-secondary);
+            font-size: 12px;
+        }
+        .invoice-footer .thank-you {
+            font-family: var(--font-serif);
+            font-size: 18px;
+            color: var(--color-primary);
+            margin-bottom: 15px;
+        }
+
+        /* --- 列印專用樣式 --- */
+        @media print {
+            body {
+                padding: 0;
+                background-color: #fff;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="watercolor-bg"></div>
+
+        <header class="invoice-header">
+            <div class="studio-info">
+                <h1>{{studioName}}</h1>
+                <p>{{studioAddress}}</p>
+                <p>{{studioContact}}</p>
+            </div>
+            <div class="invoice-meta">
+                <h2>ORDER</h2>
+                <p>訂單 #: {{orderId}}</p>
+                <p>日期: {{orderDate}}</p>
+                <p>狀態: {{orderStatus}}</p>
+            </div>
+        </header>
+
+        <main>
+            <section class="client-info">
+                <h3>BILL TO</h3>
+                <p><strong>{{customerName}}</strong></p>
+                <p>{{customerPhone}}</p>
+                <p>{{customerEmail}}</p>
+                <p>{{customerAddress}}</p>
+            </section>
+
+            <section class="items-section">
+                <div class="items-header">
+                    <div class="item-col-desc">項目說明</div>
+                    <div class="item-col-qty">數量</div>
+                    <div class="item-col-price">單價</div>
+                    <div class="item-col-total">小計</div>
+                </div>
+                
+                {{items}}
+
+            </section>
+
+            <section class="summary-section">
+                <div class="summary-box">
+                    <div class="summary-line">
+                        <span>小計</span>
+                        <span>${{subtotal}}</span>
+                    </div>
+                    <div class="summary-line discount">
+                        <span>折扣</span>
+                        <span>- ${{discount}}</span>
+                    </div>
+                    <div class="summary-line total">
+                        <span>總金額</span>
+                        <span>${{total}}</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="payment-section">
+                <h3>PAYMENT INFORMATION</h3>
+                <div class="payment-info highlight">
+                    <span>已付金額</span>
+                    <span>${{paidAmount}}</span>
+                </div>
+                <div class="payment-info highlight">
+                    <span>未付金額</span>
+                    <span>${{unpaidAmount}}</span>
+                </div>
+                {{paymentHistory}}
+            </section>
+        </main>
+
+        <footer class="invoice-footer">
+            <p class="thank-you">感謝您選擇我們的服務</p>
+            <p>若有任何疑問，歡迎隨時與我們聯繫。 {{studioWebsite}}</p>
+            <p>本收據為電腦產生，無需簽章</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>收據模板範例</title>
+    <style>
+        /* 基本樣式設定 */
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #fff;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .receipt-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #ddd;
+            padding: 30px;
+            background: #fff;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .logo {
+            max-width: 150px;
+            max-height: 80px;
+            margin-bottom: 10px;
+        }
+        
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2563eb;
+        }
+        
+        .company-info {
+            font-size: 14px;
+            color: #666;
+            margin: 2px 0;
+        }
+        
+        .receipt-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+            color: #1f2937;
+        }
+        
+        .receipt-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .info-section {
+            flex: 1;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            width: 100px;
+            color: #374151;
+        }
+        
+        .info-value {
+            flex: 1;
+            border-bottom: 1px dotted #ccc;
+            padding-bottom: 2px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .items-table th,
+        .items-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .items-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .items-table .amount {
+            text-align: right;
+        }
+        
+        .total-section {
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+        
+        .total-label {
+            font-weight: bold;
+            width: 120px;
+            padding-right: 20px;
+        }
+        
+        .total-amount {
+            width: 150px;
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            color: #dc2626;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .payment-history {
+            margin-top: 20px;
+        }
+        
+        .payment-history h4 {
+            color: #374151;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        
+        .payment-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dotted #eee;
+        }
+        
+        /* 列印樣式 */
+        @media print {
+            body {
+                padding: 0;
+            }
+            .receipt-container {
+                border: none;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <!-- 標頭區域 -->
+        <div class="header">
+            <!-- 公司LOGO（如果有的話） -->
+            {{#if logoUrl}}
+            <img src="{{logoUrl}}" alt="公司LOGO" class="logo">
+            {{/if}}
+            
+            <!-- 公司名稱和資訊 -->
+            <div class="company-name">{{studioName}}</div>
+            {{#if studioAddress}}
+            <div class="company-info">地址：{{studioAddress}}</div>
+            {{/if}}
+            {{#if studioPhone}}
+            <div class="company-info">電話：{{studioPhone}}</div>
+            {{/if}}
+            {{#if studioEmail}}
+            <div class="company-info">電子郵件：{{studioEmail}}</div>
+            {{/if}}
+            {{#if taxId}}
+            <div class="company-info">統一編號：{{taxId}}</div>
+            {{/if}}
+        </div>
+        
+        <!-- 收據標題 -->
+        <h2 class="receipt-title">收　據</h2>
+        
+        <!-- 收據基本資訊 -->
+        <div class="receipt-info">
+            <div class="info-section">
+                <div class="info-row">
+                    <span class="info-label">收據編號：</span>
+                    <span class="info-value">{{receiptNumber}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">開立日期：</span>
+                    <span class="info-value">{{issueDate}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">學生姓名：</span>
+                    <span class="info-value">{{studentName}}</span>
+                </div>
+            </div>
+            <div class="info-section">
+                <div class="info-row">
+                    <span class="info-label">聯絡人：</span>
+                    <span class="info-value">{{contactName}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">聯絡電話：</span>
+                    <span class="info-value">{{contactPhone}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">付款方式：</span>
+                    <span class="info-value">{{paymentMethod}}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 項目明細表格 -->
+        {{#if showItemDetails}}
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>項目名稱</th>
+                    <th>數量</th>
+                    <th>單價</th>
+                    <th>小計</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each orderItems}}
+                <tr>
+                    <td>{{this.itemName}}</td>
+                    <td>{{this.quantity}}</td>
+                    <td class="amount">NT$ {{this.unitPrice}}</td>
+                    <td class="amount">NT$ {{this.totalPrice}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        {{/if}}
+        
+        <!-- 總金額區域 -->
+        <div class="total-section">
+            {{#if discountAmount}}
+            <div class="total-row">
+                <span class="total-label">原價：</span>
+                <span class="total-amount">NT$ {{originalAmount}}</span>
+            </div>
+            <div class="total-row">
+                <span class="total-label">折扣：</span>
+                <span class="total-amount">- NT$ {{discountAmount}}</span>
+            </div>
+            {{/if}}
+            <div class="total-row">
+                <span class="total-label">應付金額：</span>
+                <span class="total-amount">NT$ {{finalAmount}}</span>
+            </div>
+        </div>
+        
+        <!-- 付款記錄（如果有的話） -->
+        {{#if showPaymentHistory}}
+        {{#if paymentHistory}}
+        <div class="payment-history">
+            <h4>付款記錄</h4>
+            {{#each paymentHistory}}
+            <div class="payment-row">
+                <span>{{this.paymentDate}} - {{this.paymentMethod}}</span>
+                <span>NT$ {{this.amount}}</span>
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+        {{/if}}
+        
+        <!-- 頁尾 -->
+        <div class="footer">
+            <p>謝謝您的惠顧！</p>
+            {{#if businessHours}}
+            <p>營業時間：{{businessHours}}</p>
+            {{/if}}
+            <p>本收據為電腦列印，無需蓋章</p>
+        </div>
+    </div>
+
+    <!-- 
+    ==================== 模板變數說明 ====================
+    
+    以下是可在模板中使用的變數，使用 {{變數名稱}} 的格式：
+    
+    【公司/機構資訊】
+    - {{studioName}}      機構名稱
+    - {{studioAddress}}   機構地址
+    - {{studioPhone}}     機構電話
+    - {{studioEmail}}     機構電子郵件
+    - {{taxId}}           統一編號
+    - {{businessHours}}   營業時間
+    - {{logoUrl}}         LOGO圖片網址
+    
+    【收據基本資訊】
+    - {{receiptNumber}}   收據編號
+    - {{issueDate}}       開立日期
+    - {{studentName}}     學生姓名
+    - {{contactName}}     聯絡人姓名
+    - {{contactPhone}}    聯絡人電話
+    - {{paymentMethod}}   付款方式
+    
+    【金額相關】
+    - {{originalAmount}}  原價金額
+    - {{discountAmount}}  折扣金額
+    - {{finalAmount}}     最終應付金額
+    - {{paidAmount}}      已付金額
+    - {{remainingAmount}} 剩餘未付金額
+    
+    【條件顯示】
+    使用 {{#if 條件}} ... {{/if}} 來控制內容是否顯示：
+    - {{#if logoUrl}} ... {{/if}}           當有LOGO時才顯示
+    - {{#if showItemDetails}} ... {{/if}}   當設定顯示項目明細時才顯示
+    - {{#if showPaymentHistory}} ... {{/if}} 當設定顯示付款記錄時才顯示
+    - {{#if discountAmount}} ... {{/if}}    當有折扣時才顯示
+    
+    【迴圈顯示】
+    使用 {{#each 陣列}} ... {{/each}} 來重複顯示內容：
+    
+    項目明細迴圈 {{#each orderItems}}：
+    - {{this.itemName}}    項目名稱
+    - {{this.quantity}}    數量
+    - {{this.unitPrice}}   單價
+    - {{this.totalPrice}}  小計
+    
+    付款記錄迴圈 {{#each paymentHistory}}：
+    - {{this.paymentDate}}   付款日期
+    - {{this.paymentMethod}} 付款方式
+    - {{this.amount}}        付款金額
+    
+    【樣式建議】
+    - 使用 @media print 設定列印專用樣式
+    - 建議最大寬度 800px 以適應A4紙張
+    - 使用系統字體確保相容性
+    - 重要金額使用較大字體和醒目顏色
+    
+    【注意事項】
+    - 模板使用 Handlebars 語法
+    - 所有變數都會自動轉義，確保安全性
+    - 建議在樣式中加入列印友善的設定
+    - 測試時請確保在不同瀏覽器下的顯示效果
+    -->
+</body>
+</html>
