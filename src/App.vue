@@ -1,5 +1,8 @@
 <template>
   <div id="app" class="min-h-screen" :class="themeClasses">
+    <!-- 網路狀態指示器 -->
+    <NetworkStatus />
+    
     <!-- 認證初始化加載中 -->
     <div v-if="authInitState.isInitializing" class="fixed inset-0 z-50 flex items-center justify-center bg-white">
       <div class="text-center">
@@ -35,6 +38,7 @@ import { useResponsiveStore } from '@/stores/responsive'
 import { useThemeStore } from '@/stores/theme'
 import { useThemeClasses } from '@/composables/useTheme'
 import { initializeAuth, getAuthInitState } from '@/utils/authInitializer'
+import NetworkStatus from '@/components/ui/NetworkStatus.vue'
 
 // 初始化狀態管理
 const authStore = useAuthStore()

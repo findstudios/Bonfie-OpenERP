@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Environment Test - Bonfie OpenERP</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        h1 { 
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .status-card {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: 600;
+        }
+        .value {
+            font-family: 'Courier New', monospace;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .warning { color: #fbbf24; }
+        .info { color: #60a5fa; }
+        button {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 12px 24px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        .test-results {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 生產環境測試 - Bonfie OpenERP</h1>
+        
+        <div class="status-card">
+            <h2>環境資訊</h2>
+            <div class="status-item">
+                <span class="label">環境模式：</span>
+                <span class="value" id="env-mode">檢測中...</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Supabase URL：</span>
+                <span class="value" id="supabase-url">檢測中...</span>
+            </div>
+            <div class="status-item">
+                <span class="label">專案 ID：</span>
+                <span class="value" id="project-id">檢測中...</span>
+            </div>
+            <div class="status-item">
+                <span class="label">連接狀態：</span>
+                <span class="value" id="connection-status">檢測中...</span>
+            </div>
+        </div>
+
+        <div class="status-card">
+            <h2>測試控制</h2>
+            <div style="text-align: center;">
+                <button onclick="testConnection()">測試 Supabase 連接</button>
+                <button onclick="testDatabase()">測試資料庫查詢</button>
+                <button onclick="testAuth()">測試認證系統</button>
+                <button onclick="clearLogs()">清除日誌</button>
+            </div>
+        </div>
+
+        <div class="test-results" id="test-results">
+            <h3>測試結果</h3>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+        // 生產環境配置
+        const PROD_SUPABASE_URL = 'https://dgaehncnhomnaxfgvcpo.supabase.co'
+        const PROD_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnYWVobmNuaG9tbmF4Zmd2Y3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyOTI2NDUsImV4cCI6MjA3MTg2ODY0NX0.p1lqClbyUD0sy6SQelzI8iX5eZw4ykT7VDwrEJz4SvQ'
+
+        const supabase = createClient(PROD_SUPABASE_URL, PROD_SUPABASE_ANON_KEY)
+        window.supabase = supabase
+
+        // 顯示環境資訊
+        document.getElementById('env-mode').textContent = 'Production'
+        document.getElementById('env-mode').className = 'value success'
+        document.getElementById('supabase-url').textContent = PROD_SUPABASE_URL.replace('https://', '')
+        document.getElementById('project-id').textContent = 'dgaehncnhomnaxfgvcpo'
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs')
+            const logEntry = document.createElement('div')
+            logEntry.className = `log-entry ${type}`
+            const timestamp = new Date().toLocaleTimeString('zh-TW')
+            logEntry.innerHTML = `<span class="${type}">[${timestamp}]</span> ${message}`
+            logs.insertBefore(logEntry, logs.firstChild)
+            console.log(`[${type}]`, message)
+        }
+
+        // 自動測試連接
+        async function autoTest() {
+            log('開始自動測試生產環境...', 'info')
+            
+            try {
+                // 測試基本連接
+                const healthResponse = await fetch(`${PROD_SUPABASE_URL}/rest/v1/`, {
+                    headers: {
+                        'apikey': PROD_SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${PROD_SUPABASE_ANON_KEY}`
+                    }
+                })
+                
+                if (healthResponse.ok) {
+                    document.getElementById('connection-status').textContent = '✅ 已連接'
+                    document.getElementById('connection-status').className = 'value success'
+                    log('生產環境 Supabase 連接成功！', 'success')
+                } else {
+                    throw new Error(`連接失敗: ${healthResponse.status}`)
+                }
+
+                // 獲取 Session
+                const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+                if (!sessionError) {
+                    log(`認證狀態: ${sessionData.session ? '已登入' : '未登入'}`, 'info')
+                }
+
+            } catch (error) {
+                document.getElementById('connection-status').textContent = '❌ 連接失敗'
+                document.getElementById('connection-status').className = 'value error'
+                log(`連接錯誤: ${error.message}`, 'error')
+            }
+        }
+
+        window.testConnection = async function() {
+            log('測試 Supabase 連接...', 'info')
+            
+            try {
+                // 測試 REST API
+                const response = await fetch(`${PROD_SUPABASE_URL}/rest/v1/`, {
+                    headers: {
+                        'apikey': PROD_SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${PROD_SUPABASE_ANON_KEY}`
+                    }
+                })
+                
+                log(`REST API 回應: ${response.status} ${response.statusText}`, 
+                    response.ok ? 'success' : 'error')
+
+                // 測試 Auth API
+                const authResponse = await fetch(`${PROD_SUPABASE_URL}/auth/v1/health`, {
+                    headers: { 'apikey': PROD_SUPABASE_ANON_KEY }
+                })
+                
+                log(`Auth API 回應: ${authResponse.status}`, 
+                    authResponse.ok ? 'success' : 'warning')
+
+            } catch (error) {
+                log(`連接測試失敗: ${error.message}`, 'error')
+            }
+        }
+
+        window.testDatabase = async function() {
+            log('測試資料庫查詢...', 'info')
+            
+            try {
+                // 查詢 roles 表
+                const { data: roles, error: rolesError, count } = await supabase
+                    .from('roles')
+                    .select('*', { count: 'exact' })
+                    .limit(5)
+                
+                if (rolesError) {
+                    log(`Roles 查詢錯誤: ${rolesError.message}`, 'error')
+                } else {
+                    log(`✅ Roles 表: 找到 ${count || roles.length} 筆記錄`, 'success')
+                    if (roles && roles.length > 0) {
+                        log(`角色: ${roles.map(r => r.role_name).join(', ')}`, 'info')
+                    }
+                }
+
+                // 查詢 users 表
+                const { data: users, error: usersError } = await supabase
+                    .from('users')
+                    .select('user_id, username, role_id')
+                    .limit(3)
+                
+                if (usersError) {
+                    log(`Users 查詢錯誤: ${usersError.message}`, 'error')
+                } else {
+                    log(`✅ Users 表: 找到 ${users?.length || 0} 筆使用者`, 'success')
+                }
+
+                // 查詢 students 表
+                const { count: studentCount, error: studentError } = await supabase
+                    .from('students')
+                    .select('*', { count: 'exact', head: true })
+                
+                if (studentError) {
+                    log(`Students 查詢錯誤: ${studentError.message}`, 'error')
+                } else {
+                    log(`✅ Students 表: 共有 ${studentCount} 位學生`, 'success')
+                }
+
+            } catch (error) {
+                log(`資料庫測試失敗: ${error.message}`, 'error')
+            }
+        }
+
+        window.testAuth = async function() {
+            log('測試認證系統...', 'info')
+            
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession()
+                
+                if (error) {
+                    log(`認證錯誤: ${error.message}`, 'error')
+                    return
+                }
+
+                if (session) {
+                    log('✅ 已登入', 'success')
+                    log(`用戶 Email: ${session.user.email}`, 'info')
+                    log(`用戶 ID: ${session.user.id}`, 'info')
+                    log(`Session 過期時間: ${new Date(session.expires_at * 1000).toLocaleString('zh-TW')}`, 'info')
+                } else {
+                    log('⚠️ 未登入', 'warning')
+                    log('提示: 請使用生產環境的帳號登入', 'info')
+                }
+
+                // 監聽認證狀態變化
+                supabase.auth.onAuthStateChange((event, session) => {
+                    log(`認證事件: ${event}`, 'info')
+                    if (session) {
+                        log(`Session 更新: ${session.user.email}`, 'success')
+                    }
+                })
+
+            } catch (error) {
+                log(`認證測試失敗: ${error.message}`, 'error')
+            }
+        }
+
+        window.clearLogs = function() {
+            document.getElementById('logs').innerHTML = ''
+            log('日誌已清除', 'info')
+        }
+
+        // 頁面載入時自動測試
+        autoTest()
+    </script>
+</body>
+</html>

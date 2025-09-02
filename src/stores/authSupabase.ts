@@ -4,6 +4,7 @@ import { supabase } from '@/services/supabase'
 import type { User, Role } from '@/types'
 import type { AuthError, Session, RealtimeChannel } from '@supabase/supabase-js'
 import { createLogger } from '@/utils/logger'
+import { withRetry, networkMonitor, waitForOnline } from '@/utils/networkRetry'
 
 const log = createLogger('AuthStore')
 
@@ -148,8 +149,8 @@ export const useAuthStore = defineStore('auth', () => {
     const now = Date.now()
     const timeUntilExpiry = expiresAt - now
 
-    // 在過期前 10 分鐘刷新 token
-    const refreshTime = timeUntilExpiry - (10 * 60 * 1000)
+    // 在過期前 15 分鐘刷新 token（提前一點以防網路延遲）
+    const refreshTime = timeUntilExpiry - (15 * 60 * 1000)
 
     // 在過期前 5 分鐘發出警告
     const warningTime = timeUntilExpiry - (5 * 60 * 1000)
@@ -258,30 +259,41 @@ export const useAuthStore = defineStore('auth', () => {
       log.log('開始初始化 Supabase Auth')
       console.log('[AuthStore] 開始初始化，URL:', supabase.auth.url)
 
-      // 獲取當前 session，添加重試機制
-      let retries = 3
+      // 檢查網路連線
+      if (!navigator.onLine) {
+        log.warn('網路未連線，等待網路恢復...')
+        await waitForOnline(10000).catch(() => {
+          throw new Error('網路連線超時，請檢查您的網路連線')
+        })
+      }
+
+      // 使用改進的重試機制獲取 session
       let currentSession = null
       let sessionError = null
 
-      while (retries > 0) {
-        console.log(`[AuthStore] 嘗試獲取 session (第 ${4 - retries} 次)`)
-        const result = await supabase.auth.getSession()
-        sessionError = result.error
+      try {
+        const result = await withRetry(
+          async () => {
+            const res = await supabase.auth.getSession()
+            if (res.error) throw res.error
+            return res
+          },
+          {
+            maxRetries: 5,
+            initialDelay: 1000,
+            maxDelay: 5000,
+            onRetry: (attempt, error) => {
+              console.log(`[AuthStore] 重試獲取 session (第 ${attempt} 次)`, error.message)
+            }
+          }
+        )
+        
         currentSession = result.data.session
-
-        if (!sessionError) {
-          console.log('[AuthStore] Session 獲取成功:', currentSession ? '已登入' : '未登入')
-          break
-        }
-
-        log.warn(`獲取 session 失敗，剩餘重試次數: ${retries - 1}`, sessionError)
-        console.error('[AuthStore] Session 錯誤:', sessionError)
-        retries--
-
-        // 等待一秒後重試
-        if (retries > 0) {
-          await new Promise(resolve => setTimeout(resolve, 1000))
-        }
+        sessionError = null
+        console.log('[AuthStore] Session 獲取成功:', currentSession ? '已登入' : '未登入')
+      } catch (error) {
+        sessionError = error
+        console.error('[AuthStore] Session 獲取最終失敗:', error)
       }
 
       if (sessionError) {
@@ -403,11 +415,33 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      // 使用 Supabase Auth 登入
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      // 檢查網路連線
+      if (!navigator.onLine) {
+        throw new Error('無網路連線，請檢查您的網路設定')
+      }
+
+      // 使用重試機制進行登入
+      const { data, error: authError } = await withRetry(
+        async () => {
+          const result = await supabase.auth.signInWithPassword({
+            email,
+            password
+          })
+          if (result.error) {
+            // 不重試認證錯誤（如密碼錯誤）
+            if (result.error.message?.includes('Invalid login') ||
+                result.error.message?.includes('Email not confirmed')) {
+              throw { ...result.error, noRetry: true }
+            }
+            throw result.error
+          }
+          return result
+        },
+        {
+          maxRetries: 3,
+          retryCondition: (error) => !error.noRetry
+        }
+      )
 
       if (authError) throw authError
 

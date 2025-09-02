@@ -83,6 +83,7 @@
                 type="checkbox"
                 class="size-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 :disabled="authStore.loading"
+                @change="handleRememberMeChange"
               />
               <label for="remember-me" class="ml-2 block text-sm text-gray-900">
                 記住我
@@ -147,6 +148,9 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
+// 記住的帳號 key
+const REMEMBERED_EMAIL_KEY = 'tutoring_remembered_email'
+
 // 表單狀態
 const form = ref({
   email: '',
@@ -160,11 +164,29 @@ const showPassword = ref(false)
 // 應用版本
 const version = import.meta.env.VITE_APP_VERSION || '1.0.0'
 
+// 當記住我選項改變時
+function handleRememberMeChange() {
+  if (!form.value.rememberMe && form.value.email) {
+    // 如果取消勾選，立即清除記住的帳號
+    localStorage.removeItem(REMEMBERED_EMAIL_KEY)
+    log.log('清除記住的帳號')
+  }
+}
+
 // 處理登入
 async function handleLogin() {
   try {
     // 清除之前的錯誤
     authStore.clearError()
+    
+    // 處理記住帳號
+    if (form.value.rememberMe) {
+      // 記住帳號到 localStorage
+      localStorage.setItem(REMEMBERED_EMAIL_KEY, form.value.email)
+    } else {
+      // 清除記住的帳號
+      localStorage.removeItem(REMEMBERED_EMAIL_KEY)
+    }
 
     // 執行登入
     await authStore.login(form.value.email, form.value.password)
@@ -189,6 +211,14 @@ onMounted(() => {
     isDev: import.meta.env.DEV,
     isProd: import.meta.env.PROD
   })
+  
+  // 載入記住的帳號
+  const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY)
+  if (rememberedEmail) {
+    form.value.email = rememberedEmail
+    form.value.rememberMe = true
+    log.log('載入記住的帳號:', rememberedEmail)
+  }
 
   // 如果已登入，檢查是否有重定向路徑
   if (authStore.isAuthenticated) {
