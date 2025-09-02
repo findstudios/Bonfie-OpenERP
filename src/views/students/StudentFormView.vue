@@ -377,12 +377,43 @@ async function createStudent() {
       throw new Error(`權限不足：您的角色 ${userRole} 無法新增學生`)
     }
     
+    // 檢查並處理日期格式
+    if (form.birth_date && form.birth_date.trim() !== '') {
+      // 驗證日期格式 (YYYY-MM-DD)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+      if (!dateRegex.test(form.birth_date)) {
+        // 嘗試轉換常見的日期格式
+        const dateValue = new Date(form.birth_date)
+        if (isNaN(dateValue.getTime())) {
+          throw new Error('出生日期格式不正確，請使用 YYYY-MM-DD 格式（例如：2010-05-15）')
+        }
+        // 自動轉換為正確格式
+        const year = dateValue.getFullYear()
+        const month = String(dateValue.getMonth() + 1).padStart(2, '0')
+        const day = String(dateValue.getDate()).padStart(2, '0')
+        form.birth_date = `${year}-${month}-${day}`
+        console.log('[StudentForm] 自動轉換日期格式為:', form.birth_date)
+      }
+      
+      // 驗證日期是否合理
+      const birthDate = new Date(form.birth_date)
+      const today = new Date()
+      const minDate = new Date('1900-01-01')
+      
+      if (birthDate > today) {
+        throw new Error('出生日期不能是未來的日期')
+      }
+      if (birthDate < minDate) {
+        throw new Error('出生日期不能早於 1900 年')
+      }
+    }
+    
     // 生成學生編號
     const studentId = await generateStudentId()
     console.log('[StudentForm] 生成的學生編號:', studentId)
     
     // 準備學生資料
-    const studentData = {
+    const studentData: any = {
       student_id: studentId,
       chinese_name: form.chinese_name.trim(),
       english_name: form.english_name?.trim() || null,
@@ -392,27 +423,38 @@ async function createStudent() {
     
     console.log('[StudentForm] 準備寫入的資料:', studentData)
     
-    // 直接使用 Supabase 創建，以獲得更詳細的錯誤資訊
-    const { data: student, error: createError } = await supabase
+    // 設定請求超時時間
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('請求超時：資料庫回應時間過長')), 30000) // 30秒超時
+    })
+    
+    // 使用 Promise.race 來處理超時
+    const insertPromise = supabase
       .from('students')
       .insert(studentData)
       .select()
       .single()
     
-    if (createError) {
-      console.error('[StudentForm] Supabase 寫入錯誤:', createError)
+    const result = await Promise.race([insertPromise, timeoutPromise]) as any
+    
+    if (result.error) {
+      console.error('[StudentForm] Supabase 寫入錯誤:', result.error)
       
       // 提供更詳細的錯誤訊息
-      if (createError.code === '42501') {
+      if (result.error.code === '42501') {
         throw new Error('權限不足：資料庫拒絕寫入。請確認您的帳號權限。')
-      } else if (createError.code === '23505') {
+      } else if (result.error.code === '23505') {
         throw new Error('學生編號重複，請重新操作')
-      } else if (createError.message?.includes('network')) {
+      } else if (result.error.code === '22007') {
+        throw new Error('日期格式錯誤：請檢查出生日期格式')
+      } else if (result.error.message?.includes('network')) {
         throw new Error('網路連線問題，請檢查網路後重試')
       } else {
-        throw new Error(`新增失敗: ${createError.message || '未知錯誤'}`)
+        throw new Error(`新增失敗: ${result.error.message || '未知錯誤'}`)
       }
     }
+    
+    const student = result.data
     
     if (!student) {
       throw new Error('新增失敗：未返回學生資料')
@@ -441,30 +483,83 @@ async function createStudent() {
 async function updateStudent() {
   const studentId = parseInt(route.params.id as string)
 
+  // 檢查並處理日期格式
+  if (form.birth_date && form.birth_date.trim() !== '') {
+    // 驗證日期格式 (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+    if (!dateRegex.test(form.birth_date)) {
+      // 嘗試轉換常見的日期格式
+      const dateValue = new Date(form.birth_date)
+      if (isNaN(dateValue.getTime())) {
+        throw new Error('出生日期格式不正確，請使用 YYYY-MM-DD 格式（例如：2010-05-15）')
+      }
+      // 自動轉換為正確格式
+      const year = dateValue.getFullYear()
+      const month = String(dateValue.getMonth() + 1).padStart(2, '0')
+      const day = String(dateValue.getDate()).padStart(2, '0')
+      form.birth_date = `${year}-${month}-${day}`
+      console.log('[StudentForm] 自動轉換日期格式為:', form.birth_date)
+    }
+    
+    // 驗證日期是否合理
+    const birthDate = new Date(form.birth_date)
+    const today = new Date()
+    const minDate = new Date('1900-01-01')
+    
+    if (birthDate > today) {
+      throw new Error('出生日期不能是未來的日期')
+    }
+    if (birthDate < minDate) {
+      throw new Error('出生日期不能早於 1900 年')
+    }
+  }
+
   // 準備更新資料
-  const updateData = {
+  const updateData: any = {
     chinese_name: form.chinese_name,
     english_name: form.english_name || null,
     birth_date: form.birth_date || null,
     updated_at: new Date().toISOString()
   }
 
-  // 直接使用 Supabase 更新，避免自動欄位問題
-  const { data: student, error } = await supabase
+  console.log('[StudentForm] 準備更新的資料:', updateData)
+
+  // 設定請求超時時間
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('請求超時：資料庫回應時間過長')), 30000) // 30秒超時
+  })
+
+  // 使用 Promise.race 來處理超時
+  const updatePromise = supabase
     .from('students')
     .update(updateData)
     .eq('id', studentId)
     .select()
     .single()
 
-  if (error) {
-    console.error('更新學生資料失敗:', error)
-    throw error
+  const result = await Promise.race([updatePromise, timeoutPromise]) as any
+
+  if (result.error) {
+    console.error('[StudentForm] 更新學生資料失敗:', result.error)
+    
+    // 提供更詳細的錯誤訊息
+    if (result.error.code === '22007') {
+      throw new Error('日期格式錯誤：請檢查出生日期格式')
+    } else if (result.error.message?.includes('network')) {
+      throw new Error('網路連線問題，請檢查網路後重試')
+    } else {
+      throw new Error(`更新失敗: ${result.error.message || '未知錯誤'}`)
+    }
   }
 
-  console.log('學生資料更新成功')
+  const student = result.data
 
-  // 記錄稽核日誌 - 使用字串ID
+  if (!student) {
+    throw new Error('更新失敗：未返回學生資料')
+  }
+
+  console.log('[StudentForm] 學生資料更新成功:', student)
+
   // 記錄稽核日誌 (如果函數存在)
   if (typeof authStore.logAudit === 'function') {
     await authStore.logAudit('update', 'students', route.params.id as string, updateData)

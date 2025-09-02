@@ -587,22 +587,48 @@ async function deleteStudent() {
   if (!student.value) return
 
   try {
+    // 先關閉對話框
+    showDeleteDialog.value = false
+    
+    // 顯示刪除中的提示
+    loading.value = true
+    error.value = ''
+    
     await db.delete('students', student.value.id)
 
-    // 記錄稽核日誌
-    await authStore.logAudit(
-      'delete',
-      'students',
-      student.value.id.toString(),
-      null,
-      student.value
-    )
+    // 記錄稽核日誌 (如果函數存在)
+    if (typeof authStore.logAudit === 'function') {
+      try {
+        await authStore.logAudit(
+          'delete',
+          'students',
+          student.value.id.toString(),
+          null,
+          student.value
+        )
+      } catch (auditError) {
+        console.warn('稽核日誌記錄失敗:', auditError)
+        // 不中斷流程
+      }
+    }
 
     // 重定向到學生列表
-    router.push('/students')
-  } catch (error) {
-    console.error('刪除學生失敗:', error)
-    // 這裡可以顯示錯誤通知
+    await router.push('/students')
+  } catch (err) {
+    console.error('刪除學生失敗:', err)
+    loading.value = false
+    showDeleteDialog.value = false
+    
+    // 顯示錯誤訊息
+    if (err instanceof Error) {
+      if (err.message?.includes('foreign key') || err.message?.includes('violates')) {
+        error.value = '無法刪除此學生，因為還有相關的訂單或課程記錄。請先刪除相關資料。'
+      } else {
+        error.value = `刪除失敗：${err.message}`
+      }
+    } else {
+      error.value = '刪除學生失敗，請稍後再試'
+    }
   }
 }
 
